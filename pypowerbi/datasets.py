@@ -430,6 +430,32 @@ class Datasets:
 
         return refresh_data
 
+    def get_dataset_refresh_schedule(self, dataset_id, group_id=None):
+        """
+                Gets the refresh schedule of a dataset
+                :param dataset_id: The id of the dataset to refresh
+                :param group_id: The optional id of the group
+                """
+        # group_id can be none, account for it
+        if group_id is None:
+            groups_part = '/'
+        else:
+            groups_part = f'/{self.groups_snippet}/{group_id}/'
+
+        # form the url
+        url = f'{self.base_url}{groups_part}/{self.datasets_snippet}/{dataset_id}/refreshSchedule'
+
+        # get the response
+        response = requests.get(url, headers=self.client.auth_header)
+
+        # 200 is the only successful code, raise an exception on any other response code
+        if response.status_code != 200:
+            raise HTTPError(response, f'Dataset refresh schedule request returned http error: {response.json()}')
+        schedule_data = json.loads(response.text)
+        schedule_data.pop("@odata.context", None)
+
+        return schedule_data
+
     @classmethod
     def datasets_from_get_datasets_response(cls, response):
         """
